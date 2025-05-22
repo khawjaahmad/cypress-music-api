@@ -1,12 +1,9 @@
 const { defineConfig } = require('cypress')
 
-// Load environment variables from .env file
-require('dotenv').config()
-
 module.exports = defineConfig({
   e2e: {
-    // Base URL for your API - now using environment variable
-    baseUrl: process.env.CYPRESS_API_URL || 'https://localhost:8000',
+    // Set baseUrl directly to your production API - not sensitive data
+    baseUrl: 'https://api.defect.wtf',
 
     // Test files configuration
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
@@ -26,24 +23,22 @@ module.exports = defineConfig({
     watchForFileChanges: false,
     screenshotOnRunFailure: true,
 
-    // Environment variables - all sensitive data moved to env vars
+    // Environment variables - ONLY for sensitive data
     env: {
-      // API configuration - will be overridden by environment variables
-      apiUrl: process.env.CYPRESS_API_URL || 'https://localhost:8000',
-      apiVersion: process.env.CYPRESS_API_VERSION || '/v1',
+      // API configuration
+      apiUrl: 'https://api.defect.wtf',
+      apiVersion: '/v1',
 
-      // Authentication - NEVER commit real credentials
+      // Authentication - these are the sensitive ones from env vars
       adminUsername: process.env.CYPRESS_ADMIN_USERNAME || 'admin',
       adminEmail: process.env.CYPRESS_ADMIN_EMAIL || 'admin@example.com',
       adminPassword: process.env.CYPRESS_ADMIN_PASSWORD || 'defaultpassword',
       apiKey: process.env.CYPRESS_API_KEY || 'default-api-key',
 
       // Test configuration
-      testTimeout: parseInt(process.env.CYPRESS_TEST_TIMEOUT) || 30000,
-      retries: parseInt(process.env.CYPRESS_RETRIES) || 2,
-
-      // Environment indicator
-      environment: process.env.CYPRESS_ENVIRONMENT || 'local'
+      testTimeout: 30000,
+      retries: 2,
+      environment: 'production'
     },
 
     // Setup and teardown
