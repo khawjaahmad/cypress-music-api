@@ -43,12 +43,13 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
+          config: baseUrl=${{ secrets.CYPRESS_API_URL }}
           spec: |
             ${{ matrix.test-suite == 'auth' && 'cypress/e2e/auth/**/*.cy.js' || '' }}
             ${{ matrix.test-suite == 'users' && 'cypress/e2e/users/**/*.cy.js' || '' }}
             ${{ matrix.test-suite == 'artists' && 'cypress/e2e/artists/**/*.cy.js' || '' }}
-          record: true
-          parallel: true
+          record: false
+          parallel: false
           group: ${{ matrix.test-suite }}
         env:
           # API Configuration
