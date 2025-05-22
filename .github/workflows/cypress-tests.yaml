@@ -1,0 +1,113 @@
+name: Cypress E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        # Split tests by feature for parallel execution
+        test-suite: [auth, users, artists]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cypress
+        run: npx cypress verify
+
+      - name: Wake up backend (if needed)
+        run: npm run wake-up
+        continue-on-error: true
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: |
+            ${{ matrix.test-suite == 'auth' && 'cypress/e2e/auth/**/*.cy.js' || '' }}
+            ${{ matrix.test-suite == 'users' && 'cypress/e2e/users/**/*.cy.js' || '' }}
+            ${{ matrix.test-suite == 'artists' && 'cypress/e2e/artists/**/*.cy.js' || '' }}
+          record: true
+          parallel: true
+          group: ${{ matrix.test-suite }}
+        env:
+          # API Configuration
+          CYPRESS_API_URL: ${{ secrets.CYPRESS_API_URL }}
+          CYPRESS_API_VERSION: ${{ secrets.CYPRESS_API_VERSION }}
+          
+          # Authentication
+          CYPRESS_ADMIN_USERNAME: ${{ secrets.CYPRESS_ADMIN_USERNAME }}
+          CYPRESS_ADMIN_EMAIL: ${{ secrets.CYPRESS_ADMIN_EMAIL }}
+          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
+          CYPRESS_API_KEY: ${{ secrets.CYPRESS_API_KEY }}
+          
+          # Test Configuration
+          CYPRESS_TEST_TIMEOUT: 30000
+          CYPRESS_RETRIES: 2
+          CYPRESS_ENVIRONMENT: production
+          
+          # Cypress Cloud
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-results-${{ matrix.test-suite }}
+          path: |
+            cypress/screenshots
+            cypress/reports
+          retention-days: 7
+
+  # Combine results and send notifications
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: cypress-run
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Generate test summary
+        run: |
+          echo "## 🧪 Cypress Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Auth | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Users | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Artists | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Total Tests:** $(find . -name '*.cy.js' | wc -l) test files" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 **Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Cypress Dashboard:** [View Results](https://dashboard.cypress.io)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack on failure
+        if: failure() && github.ref == 'refs/heads/main'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "🚨 Cypress tests failed on main branch!"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,0 +1,62 @@
+{
+  "name": "music-api-cypress-tests",
+  "version": "1.0.0",
+  "description": "Cypress E2E tests for Music API",
+  "main": "index.js",
+  "scripts": {
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run --browser chrome --headed",
+    "cypress:run:headless": "cypress run --browser chrome",
+    "cypress:run:electron": "cypress run",
+    "wake-up": "cypress run --browser chrome --spec '**/auth/wake-up.cy.js'",
+    "test:auth:core": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js'",
+    "test:auth:security": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-security.cy.js'",
+    "test:auth:all": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/auth/auth-security.cy.js'",
+    "test:users:api": "npm run wake-up && cypress run --browser chrome --spec '**/users/user-api-tests.cy.js'",
+    "test:users:favorites": "npm run wake-up && cypress run --browser chrome --spec '**/users/favorites-api-tests.cy.js'",
+    "test:users:all": "npm run wake-up && cypress run --browser chrome --spec '**/users/user-api-tests.cy.js,**/users/favorites-api-tests.cy.js'",
+    "test:artists:core": "npm run wake-up && cypress run --browser chrome --spec '**/artists/artists-core.cy.js'",
+    "test:artists:integration": "npm run wake-up && cypress run --browser chrome --spec '**/artists/artists-integration.cy.js'",
+    "test:artists:all": "npm run wake-up && cypress run --browser chrome --spec '**/artists/artists-core.cy.js,**/artists/artists-integration.cy.js'",
+    "test:auth": "npm run test:auth:all",
+    "test:users": "npm run test:users:all",
+    "test:artists": "npm run test:artists:all",
+    "test:core": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/users/user-api-tests.cy.js,**/artists/artists-core.cy.js'",
+    "test:integration": "npm run wake-up && cypress run --browser chrome --spec '**/artists/artists-integration.cy.js,**/users/favorites-api-tests.cy.js'",
+    "test:security": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-security.cy.js'",
+    "test:flow:basic": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/users/user-api-tests.cy.js'",
+    "test:flow:complete": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/users/user-api-tests.cy.js,**/users/favorites-api-tests.cy.js,**/artists/artists-core.cy.js,**/artists/artists-integration.cy.js'",
+    "test:flow:auth-first": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/auth/auth-security.cy.js,**/users/user-api-tests.cy.js,**/users/favorites-api-tests.cy.js,**/artists/artists-core.cy.js,**/artists/artists-integration.cy.js'",
+    "test:all": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/auth/auth-security.cy.js,**/users/user-api-tests.cy.js,**/users/favorites-api-tests.cy.js,**/artists/artists-core.cy.js,**/artists/artists-integration.cy.js'",
+    "test:smoke": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js'",
+    "test:regression": "npm run test:all",
+    "test:headless:all": "npm run wake-up && cypress run --spec '**/auth/auth-core.cy.js,**/auth/auth-security.cy.js,**/users/user-api-tests.cy.js,**/users/favorites-api-tests.cy.js,**/artists/artists-core.cy.js,**/artists/artists-integration.cy.js'",
+    "test": "npm run test:flow:complete",
+    "test:debug": "npm run wake-up && cypress open",
+    "test:parallel:auth": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js,**/auth/auth-security.cy.js' --parallel",
+    "test:parallel:users": "npm run wake-up && cypress run --browser chrome --spec '**/users/user-api-tests.cy.js,**/users/favorites-api-tests.cy.js' --parallel",
+    "test:parallel:artists": "npm run wake-up && cypress run --browser chrome --spec '**/artists/artists-core.cy.js,**/artists/artists-integration.cy.js' --parallel",
+    "test:sequential:auth": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js' && cypress run --browser chrome --spec '**/auth/auth-security.cy.js'",
+    "test:sequential:users": "npm run wake-up && cypress run --browser chrome --spec '**/users/user-api-tests.cy.js' && cypress run --browser chrome --spec '**/users/favorites-api-tests.cy.js'",
+    "test:sequential:artists": "npm run wake-up && cypress run --browser chrome --spec '**/artists/artists-core.cy.js' && cypress run --browser chrome --spec '**/artists/artists-integration.cy.js'",
+    "test:sequential:all": "npm run wake-up && cypress run --browser chrome --spec '**/auth/auth-core.cy.js' && cypress run --browser chrome --spec '**/auth/auth-security.cy.js' && cypress run --browser chrome --spec '**/users/user-api-tests.cy.js' && cypress run --browser chrome --spec '**/users/favorites-api-tests.cy.js' && cypress run --browser chrome --spec '**/artists/artists-core.cy.js' && cypress run --browser chrome --spec '**/artists/artists-integration.cy.js'"
+  },
+  "keywords": [
+    "cypress",
+    "e2e",
+    "testing",
+    "music-api",
+    "automation"
+  ],
+  "author": "QA Automation Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@faker-js/faker": "9.8.0",
+    "ajv": "8.12.0",
+    "ajv-formats": "3.0.1",
+    "cypress": "^14.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0"
+  }
+}
