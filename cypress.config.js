@@ -1,57 +1,61 @@
 const { defineConfig } = require('cypress')
 
+// Load environment variables from .env file
+require('dotenv').config()
+
 module.exports = defineConfig({
   e2e: {
-    apiUrl: process.env.CYPRESS_API_URL || 'https://localhost:8000',
+    // Base URL for your API - now using environment variable
+    baseUrl: process.env.CYPRESS_API_URL || 'https://localhost:8000',
 
-    
+    // Test files configuration
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.js',
     experimentalRunAllSpecs: true,
 
-    
+    // Viewport settings
     viewportWidth: 1280,
     viewportHeight: 720,
 
-   
+    // Timeouts
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     responseTimeout: 10000,
 
-    
+    // Test execution settings
     watchForFileChanges: false,
     screenshotOnRunFailure: true,
 
-    
+    // Environment variables - all sensitive data moved to env vars
     env: {
-      
+      // API configuration - will be overridden by environment variables
       apiUrl: process.env.CYPRESS_API_URL || 'https://localhost:8000',
       apiVersion: process.env.CYPRESS_API_VERSION || '/v1',
 
-      
+      // Authentication - NEVER commit real credentials
       adminUsername: process.env.CYPRESS_ADMIN_USERNAME || 'admin',
       adminEmail: process.env.CYPRESS_ADMIN_EMAIL || 'admin@example.com',
       adminPassword: process.env.CYPRESS_ADMIN_PASSWORD || 'defaultpassword',
       apiKey: process.env.CYPRESS_API_KEY || 'default-api-key',
 
-      
-      testTimeout: process.env.CYPRESS_TEST_TIMEOUT || 30000,
-      retries: process.env.CYPRESS_RETRIES || 2,
+      // Test configuration
+      testTimeout: parseInt(process.env.CYPRESS_TEST_TIMEOUT) || 30000,
+      retries: parseInt(process.env.CYPRESS_RETRIES) || 2,
 
-      
+      // Environment indicator
       environment: process.env.CYPRESS_ENVIRONMENT || 'local'
     },
 
-    
+    // Setup and teardown
     setupNodeEvents(on, config) {
-      
+      // Task definitions
       on('task', {
         log(message) {
           console.log(message)
           return null
         },
 
-        
+        // Generate test users
         generateTestUsers(count = 4) {
           const { faker } = require('@faker-js/faker')
           const users = []
@@ -67,7 +71,7 @@ module.exports = defineConfig({
           return users
         },
 
-        
+        // Generate single artist data
         generateArtistData(count = 1) {
           const { faker } = require('@faker-js/faker')
 
@@ -88,13 +92,13 @@ module.exports = defineConfig({
           return artists
         },
 
-        
+        // Generate album data
         generateAlbumData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const albums = []
 
           for (let i = 0; i < count; i++) {
-            
+            // Generate realistic album names
             const albumTypes = [
               faker.lorem.words(2) + " Album",
               faker.lorem.word().charAt(0).toUpperCase() + faker.lorem.word().slice(1),
@@ -109,15 +113,15 @@ module.exports = defineConfig({
                 from: '1960-01-01',
                 to: new Date()
               }).getFullYear(),
-              
+              // artist_id will be set in tests
             })
           }
 
-          
+          // ALWAYS return single object when count === 1, array otherwise
           return count === 1 ? albums[0] : albums
         },
 
-        
+        // Generate song data
         generateSongData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const songs = []
@@ -129,6 +133,7 @@ module.exports = defineConfig({
           ]
 
           for (let i = 0; i < count; i++) {
+            // Generate realistic song names
             const songTypes = [
               faker.lorem.words(2),
               faker.lorem.words(3),
@@ -139,22 +144,22 @@ module.exports = defineConfig({
 
             songs.push({
               title: faker.helpers.arrayElement(songTypes),
-              duration: faker.number.float({ min: 120.0, max: 360.0, precision: 0.1 }),
+              duration: faker.number.float({ min: 120.0, max: 360.0, precision: 0.1 }), // 2-6 minutes
               genre: faker.helpers.arrayElement(genres),
-              
+              // album_id will be set in tests
             })
           }
 
           return count === 1 ? songs[0] : songs
         },
 
-        
+        // Generate playlist data
         generatePlaylistData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const playlists = []
 
           for (let i = 0; i < count; i++) {
-            
+            // Generate realistic playlist names
             const playlistTypes = [
               faker.lorem.words(2) + " Mix",
               "Best of " + faker.lorem.word(),
@@ -167,14 +172,14 @@ module.exports = defineConfig({
             playlists.push({
               name: faker.helpers.arrayElement(playlistTypes),
               description: faker.lorem.sentence(),
-              song_ids: []
+              song_ids: [] // Will be populated in tests
             })
           }
 
           return count === 1 ? playlists[0] : playlists
         },
 
-        
+        // Generate API user data for admin tests
         generateApiUserData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const users = []
@@ -191,7 +196,7 @@ module.exports = defineConfig({
           return count === 1 ? users[0] : users
         },
 
-       
+        // Generate comprehensive test data for integration tests
         generateMusicTestData() {
           const { faker } = require('@faker-js/faker')
 
@@ -230,7 +235,7 @@ module.exports = defineConfig({
           }
         },
 
-        
+        // Validate JSON schema
         validateSchema(data) {
           const Ajv = require('ajv')
           const addFormats = require('ajv-formats')
@@ -248,7 +253,7 @@ module.exports = defineConfig({
           }
         },
 
-        
+        // Generate test data for performance tests
         generateBulkTestData(type, count = 10) {
           const { faker } = require('@faker-js/faker')
           const data = []
@@ -302,7 +307,7 @@ module.exports = defineConfig({
           return data
         },
 
-       
+        // Generate edge case test data
         generateEdgeCaseData(type) {
           const { faker } = require('@faker-js/faker')
 
@@ -316,7 +321,7 @@ module.exports = defineConfig({
             case 'long-content':
               return {
                 name: 'A'.repeat(255),
-                bio: faker.lorem.paragraphs(10)
+                bio: faker.lorem.paragraphs(10) // Very long bio
               }
 
             case 'minimal-content':
@@ -337,6 +342,7 @@ module.exports = defineConfig({
         }
       })
 
+      // Plugin configurations
       return config
     },
   },
