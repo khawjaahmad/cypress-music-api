@@ -2,7 +2,6 @@ const { defineConfig } = require('cypress')
 
 module.exports = defineConfig({
   e2e: {
-    // Set baseUrl directly to your production API - not sensitive data
     baseUrl: 'https://api.defect.wtf',
 
     // Test files configuration
@@ -22,27 +21,37 @@ module.exports = defineConfig({
     // Test execution settings
     watchForFileChanges: false,
     screenshotOnRunFailure: true,
+    video: true, // Enable video recording for debugging
 
-    // Environment variables - ONLY for sensitive data
+    // Environment variables with better defaults
     env: {
       // API configuration
-      apiUrl: 'https://api.defect.wtf',
-      apiVersion: '/v1',
+      apiUrl: process.env.CYPRESS_API_URL || 'https://api.defect.wtf',
+      apiVersion: process.env.CYPRESS_API_VERSION || '/v1',
 
-      // Authentication - these are the sensitive ones from env vars
-      adminUsername: process.env.CYPRESS_ADMIN_USERNAME || 'admin',
-      adminEmail: process.env.CYPRESS_ADMIN_EMAIL || 'admin@example.com',
-      adminPassword: process.env.CYPRESS_ADMIN_PASSWORD || 'defaultpassword',
-      apiKey: process.env.CYPRESS_API_KEY || 'default-api-key',
+      // Authentication - these will come from GitHub secrets or local .env
+      adminUsername: process.env.CYPRESS_ADMIN_USERNAME,
+      adminEmail: process.env.CYPRESS_ADMIN_EMAIL,
+      adminPassword: process.env.CYPRESS_ADMIN_PASSWORD,
+      apiKey: process.env.CYPRESS_API_KEY,
 
       // Test configuration
       testTimeout: 30000,
       retries: 2,
-      environment: 'production'
+      environment: process.env.CYPRESS_ENVIRONMENT || 'production'
     },
 
     // Setup and teardown
     setupNodeEvents(on, config) {
+      // Log environment variables (without exposing sensitive data)
+      console.log('Cypress Configuration:')
+      console.log('- API URL:', config.env.apiUrl)
+      console.log('- API Version:', config.env.apiVersion)
+      console.log('- Environment:', config.env.environment)
+      console.log('- Admin Username:', config.env.adminUsername ? '✓ Set' : '✗ Not set')
+      console.log('- Admin Password:', config.env.adminPassword ? '✓ Set' : '✗ Not set')
+      console.log('- API Key:', config.env.apiKey ? '✓ Set' : '✗ Not set')
+
       // Task definitions
       on('task', {
         log(message) {
@@ -93,7 +102,6 @@ module.exports = defineConfig({
           const albums = []
 
           for (let i = 0; i < count; i++) {
-            // Generate realistic album names
             const albumTypes = [
               faker.lorem.words(2) + " Album",
               faker.lorem.word().charAt(0).toUpperCase() + faker.lorem.word().slice(1),
@@ -108,11 +116,9 @@ module.exports = defineConfig({
                 from: '1960-01-01',
                 to: new Date()
               }).getFullYear(),
-              // artist_id will be set in tests
             })
           }
 
-          // ALWAYS return single object when count === 1, array otherwise
           return count === 1 ? albums[0] : albums
         },
 
@@ -128,7 +134,6 @@ module.exports = defineConfig({
           ]
 
           for (let i = 0; i < count; i++) {
-            // Generate realistic song names
             const songTypes = [
               faker.lorem.words(2),
               faker.lorem.words(3),
@@ -139,9 +144,8 @@ module.exports = defineConfig({
 
             songs.push({
               title: faker.helpers.arrayElement(songTypes),
-              duration: faker.number.float({ min: 120.0, max: 360.0, precision: 0.1 }), // 2-6 minutes
+              duration: faker.number.float({ min: 120.0, max: 360.0, precision: 0.1 }),
               genre: faker.helpers.arrayElement(genres),
-              // album_id will be set in tests
             })
           }
 
@@ -154,7 +158,6 @@ module.exports = defineConfig({
           const playlists = []
 
           for (let i = 0; i < count; i++) {
-            // Generate realistic playlist names
             const playlistTypes = [
               faker.lorem.words(2) + " Mix",
               "Best of " + faker.lorem.word(),
@@ -167,7 +170,7 @@ module.exports = defineConfig({
             playlists.push({
               name: faker.helpers.arrayElement(playlistTypes),
               description: faker.lorem.sentence(),
-              song_ids: [] // Will be populated in tests
+              song_ids: []
             })
           }
 
@@ -316,7 +319,7 @@ module.exports = defineConfig({
             case 'long-content':
               return {
                 name: 'A'.repeat(255),
-                bio: faker.lorem.paragraphs(10) // Very long bio
+                bio: faker.lorem.paragraphs(10)
               }
 
             case 'minimal-content':
@@ -337,7 +340,7 @@ module.exports = defineConfig({
         }
       })
 
-      // Plugin configurations
+      // Return updated config
       return config
     },
   },
