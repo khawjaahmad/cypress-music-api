@@ -171,63 +171,7 @@ jobs:
           if [ "${{ github.event_name }}" == "schedule" ]; then
             echo "⏰ **Scheduled Run:** Daily automated testing" >> $GITHUB_STEP_SUMMARY
           fi
-
-      - name: Create Status Badge
-        if: github.ref == 'refs/heads/main'
-        run: |
-          # Create a simple status badge data
-          if [ "${{ needs.cypress-run.result }}" == "success" ]; then
-            echo "CYPRESS_STATUS=passing" >> $GITHUB_ENV
-            echo "BADGE_COLOR=brightgreen" >> $GITHUB_ENV
-          else
-            echo "CYPRESS_STATUS=failing" >> $GITHUB_ENV
-            echo "BADGE_COLOR=red" >> $GITHUB_ENV
-          fi
-
-      - name: Notify Slack on failure (Enhanced)
-        if: failure() && github.ref == 'refs/heads/main'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: failure
-          fields: repo,message,commit,author,action,eventName,ref,workflow
-          text: |
-            🚨 *Cypress E2E Tests Failed*
-            
-            📊 *Cypress Cloud Dashboard:* https://cloud.cypress.io/projects/${{ secrets.CYPRESS_PROJECT_ID }}/runs
-            🔗 *GitHub Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-            *Branch:* `${{ github.ref_name }}`
-            *Trigger:* ${{ github.event_name }}
-            *Commit:* `${{ github.sha }}`
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Notify Slack on success (Scheduled runs only)
-        if: success() && github.event_name == 'schedule'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: success
-          text: |
-            ✅ *Daily Cypress Tests Completed Successfully*
-            
-            📊 *View Results:* https://cloud.cypress.io/projects/${{ secrets.CYPRESS_PROJECT_ID }}/runs
-            🕐 *Completed at:* $(date -u)
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-  # Optional: Update README badge
-  update-badge:
-    runs-on: ubuntu-latest
-    needs: cypress-run
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Update Repository Badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
-        with:
-          auth: ${{ secrets.GITHUB_TOKEN }}
-          gistID: ${{ secrets.GIST_ID }} # You'll need to create a gist for this
-          filename: cypress-tests.json
-          label: Cypress Tests
-          message: ${{ needs.cypress-run.result == 'success' && 'passing' || 'failing' }}
-          color: ${{ needs.cypress-run.result == 'success' && 'brightgreen' || 'red' }}
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**🚀 Powered by Cypress Cloud** | **📊 Public Dashboard Available** | **🔄 Automated 2x Daily**" >> $GITHUB_STEP_SUMMARY
