@@ -4,62 +4,71 @@ module.exports = defineConfig({
   e2e: {
     baseUrl: 'https://api.defect.wtf',
 
-    // Test files configuration
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/e2e.js',
     experimentalRunAllSpecs: true,
 
-    // Viewport settings
     viewportWidth: 1280,
     viewportHeight: 720,
 
-    // Timeouts
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     responseTimeout: 10000,
 
-    // Test execution settings
     watchForFileChanges: false,
     screenshotOnRunFailure: true,
-    video: true, // Enable video recording for debugging
+    video: false, 
+    videoCompression: false,
 
-    // Environment variables with better defaults
+    projectId: process.env.CYPRESS_PROJECT_ID,
+
+    experimentalStudio: true,
+    retries: {
+      runMode: 2, 
+      openMode: 0 
+    },
+
     env: {
-      // API configuration
       apiUrl: process.env.CYPRESS_API_URL || 'https://api.defect.wtf',
       apiVersion: process.env.CYPRESS_API_VERSION || '/v1',
 
-      // Authentication - these will come from GitHub secrets or local .env
       adminUsername: process.env.CYPRESS_ADMIN_USERNAME,
       adminEmail: process.env.CYPRESS_ADMIN_EMAIL,
       adminPassword: process.env.CYPRESS_ADMIN_PASSWORD,
       apiKey: process.env.CYPRESS_API_KEY,
 
-      // Test configuration
       testTimeout: 30000,
       retries: 2,
-      environment: process.env.CYPRESS_ENVIRONMENT || 'production'
+      environment: process.env.CYPRESS_ENVIRONMENT || 'production',
+
+      recordKey: process.env.CYPRESS_RECORD_KEY,
+
+      enableCloudRecording: process.env.CI === 'true',
+      enableParallelization: process.env.CI === 'true'
     },
 
-    // Setup and teardown
     setupNodeEvents(on, config) {
-      // Log environment variables (without exposing sensitive data)
-      console.log('Cypress Configuration:')
+      console.log('🚀 Cypress Configuration:')
       console.log('- API URL:', config.env.apiUrl)
       console.log('- API Version:', config.env.apiVersion)
       console.log('- Environment:', config.env.environment)
       console.log('- Admin Username:', config.env.adminUsername ? '✓ Set' : '✗ Not set')
       console.log('- Admin Password:', config.env.adminPassword ? '✓ Set' : '✗ Not set')
       console.log('- API Key:', config.env.apiKey ? '✓ Set' : '✗ Not set')
+      console.log('- Cloud Recording:', config.env.enableCloudRecording ? '✓ Enabled' : '✗ Disabled')
+      console.log('- Project ID:', config.projectId ? '✓ Set' : '✗ Not set')
 
-      // Task definitions
       on('task', {
         log(message) {
           console.log(message)
           return null
         },
 
-        // Generate test users
+        cloudLog(data) {
+          console.log('📊 CLOUD:', JSON.stringify(data, null, 2))
+          return null
+        },
+
         generateTestUsers(count = 4) {
           const { faker } = require('@faker-js/faker')
           const users = []
@@ -75,7 +84,6 @@ module.exports = defineConfig({
           return users
         },
 
-        // Generate single artist data
         generateArtistData(count = 1) {
           const { faker } = require('@faker-js/faker')
 
@@ -96,7 +104,6 @@ module.exports = defineConfig({
           return artists
         },
 
-        // Generate album data
         generateAlbumData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const albums = []
@@ -122,7 +129,6 @@ module.exports = defineConfig({
           return count === 1 ? albums[0] : albums
         },
 
-        // Generate song data
         generateSongData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const songs = []
@@ -152,7 +158,6 @@ module.exports = defineConfig({
           return count === 1 ? songs[0] : songs
         },
 
-        // Generate playlist data
         generatePlaylistData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const playlists = []
@@ -177,7 +182,6 @@ module.exports = defineConfig({
           return count === 1 ? playlists[0] : playlists
         },
 
-        // Generate API user data for admin tests
         generateApiUserData(count = 1) {
           const { faker } = require('@faker-js/faker')
           const users = []
@@ -194,7 +198,6 @@ module.exports = defineConfig({
           return count === 1 ? users[0] : users
         },
 
-        // Generate comprehensive test data for integration tests
         generateMusicTestData() {
           const { faker } = require('@faker-js/faker')
 
@@ -233,7 +236,6 @@ module.exports = defineConfig({
           }
         },
 
-        // Validate JSON schema
         validateSchema(data) {
           const Ajv = require('ajv')
           const addFormats = require('ajv-formats')
@@ -251,7 +253,6 @@ module.exports = defineConfig({
           }
         },
 
-        // Generate test data for performance tests
         generateBulkTestData(type, count = 10) {
           const { faker } = require('@faker-js/faker')
           const data = []
@@ -305,7 +306,6 @@ module.exports = defineConfig({
           return data
         },
 
-        // Generate edge case test data
         generateEdgeCaseData(type) {
           const { faker } = require('@faker-js/faker')
 
@@ -340,7 +340,26 @@ module.exports = defineConfig({
         }
       })
 
-      // Return updated config
+      on('before:browser:launch', (browser = {}, launchOptions) => {
+        console.log(`🌐 Launching ${browser.name} for ${config.env.enableCloudRecording ? 'cloud recording' : 'local testing'}`)
+
+        if (browser.name === 'chrome' && config.env.enableCloudRecording) {
+          launchOptions.args.push('--disable-background-timer-throttling')
+          launchOptions.args.push('--disable-backgrounding-occluded-windows')
+          launchOptions.args.push('--disable-renderer-backgrounding')
+          launchOptions.args.push('--disable-features=TranslateUI')
+          launchOptions.args.push('--disable-ipc-flooding-protection')
+        }
+
+        return launchOptions
+      })
+
+      on('after:spec', (spec, results) => {
+        if (config.env.enableCloudRecording && results && results.stats.failures > 0) {
+          console.log(`📊 Cloud Dashboard: https://cloud.cypress.io/projects/${config.projectId}`)
+        }
+      })
+
       return config
     },
   },
