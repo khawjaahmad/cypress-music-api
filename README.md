@@ -116,7 +116,7 @@ Experience real-time test monitoring with comprehensive analytics:
 ## 📞 Connect
 
 **GitHub**: [@khawjaahmad](https://github.com/khawjaahmad)  
-**LinkedIn**: [Ahmad Waqar](https://linkedin.com/in/ahmad-khawja)  
+**LinkedIn**: [Ahmad Waqar](https://linkedin.com/in/khawjaahmad)  
 **Dashboard**: [Live Results](https://cloud.cypress.io/projects/6mft5r/runs)
 
 ---
